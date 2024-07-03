@@ -124,6 +124,33 @@ Node *ReadUsers(Node *root)
     return root;
 }
 
+void login(Node *root)
+{
+    int selection = 0;
+    User x;
+    do
+    {
+        printf("Enter Username: ");
+        gets(x.username);
+        printf("Enter Password: ");
+        gets(x.password);
+        Node *found = Search(root, x.username);
+        if (found == NULL)
+        {
+            printf("Incorrect Username or Password.\n");
+            do
+            {
+                printf("Choose an option:\n");
+                printf("1-Try Again\n2-Exit\n");
+                scanf("%d", &selection);
+                getchar();
+                if (selection != 1 && selection != 2)
+                    printf("Invalid Selection.\n");
+            } while (selection != 1 && selection != 2);
+        }
+    } while ();
+}
+
 int main(void)
 {
     int selection;
@@ -143,7 +170,7 @@ int main(void)
     } while (selection != 1 && selection != 2);
     if (selection == 1)
     {
-        //Login();
+        // Login();
     }
     else
         return 0;
