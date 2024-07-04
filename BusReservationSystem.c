@@ -1,176 +1,244 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <stdbool.h>
-int NoOfUsers = 0;
+#include <errno.h>
+#include <dirent.h>
+extern int errno;
+int No_Users = 0;
 
-typedef struct
+/* DONE: SUCCESSfUL USERS LOADING IN BST
+   NEXT: CODE LOGIN FUNCTION
+   Make directory for files
+*/
+
+//Debug Login Function
+
+typedef struct User
 {
-    char *username;
+    char *name;
     char *password;
 } User;
 
-typedef struct
+typedef struct Node
 {
-    char *name;
-    int age;
-    bool reserved;
-    int bus_number;
-    int seat_number;
-} Passenger;
-
-typedef struct
-{
-    int SeatNumber;
-    bool free;
-    char *Name;
-} Seat;
-
-typedef struct
-{
-    int numSeats;
-    int freeSeats;
-    double stdFee;
-    char *Destination;
-    time_t departureTime;
-    time_t arrivalTime;
-    Seat *seats;
-} Bus;
-
-typedef struct
-{
-    User user;
+    User s;
     struct Node *left;
     struct Node *right;
 } Node;
 
-Node *newNode(User s)
+void Print_In_X(int x, char *str)
+{
+    for (int j = 0; j < x; j++)
+        printf(" ");
+    printf("%s", str);
+}
+
+Node *newNode(User x)
 {
     Node *n = malloc(sizeof(Node));
     if (n == NULL)
     {
-        printf("Error...Cannot Allocate Memory.\n");
-        exit(1);
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        return errno;
     }
-    n->user = s;
     n->left = n->right = NULL;
+    n->s = x;
     return n;
 }
 
-Node *insert(Node *root, User s)
+User newUser(char *username, char *pass)
+{
+    User s;
+    s.name = malloc(strlen(username) + 1);
+    if (s.name == NULL)
+    {
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        exit(errno);
+    }
+    strcpy(s.name, username);
+    s.password = malloc(strlen(pass) + 1);
+    if (s.password == NULL)
+    {
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        exit(errno);
+    }
+    strcpy(s.password, pass);
+    return s;
+}
+
+void FreeUser(User s)
+{
+    free(s.name);
+    free(s.password);
+}
+
+Node *insert(Node *root, User x)
 {
     if (root == NULL)
-        return newNode(s);
-    else if (strcasecmp(s.username, root->user.username) < 0)
-        root->left = insert(root->left, s);
-    else if (strcasecmp(s.username, root->user.username) > 0)
-        root->right = insert(root->right, s);
+        root = newNode(x);
+    else if (strcasecmp(x.name, root->s.name) < 0)
+        root->left = insert(root->left, x);
+    else if (strcasecmp(x.name, root->s.name) > 0)
+        root->right = insert(root->right, x);
     return root;
 }
 
-Node *Search(Node *root, char *username)
+Node *Search(Node *root, User s)
 {
     if (root == NULL)
         return NULL;
-    if (strcasecmp(root->user.username, username) == 0)
+    if (strcmp(root->s.name, s.name) == 0)
         return root;
-    if (strcasecmp(username, root->user.username) < 0)
-        return Search(root->left, username);
-    if (strcasecmp(username, root->user.username) > 0)
-        return Search(root->right, username);
+    if (strcmp(s.name, root->s.name) < 0)
+        return Search(root->left, s);
+    if (strcmp(s.name, root->s.name) > 0)
+        return Search(root->right, s);
 }
 
-Node *ReadUsers(Node *root)
+void PreorderDisplay(Node *root)
 {
-    User *s = malloc(sizeof(User));
-    if (s == NULL)
+    if(root)
     {
-        printf("Error...Cannot Allocate Memory.\n");
-        exit(2);
+        printf("%s\n", root->s.name);
+        PreorderDisplay(root->left);
+        PreorderDisplay(root->right);
     }
+}
+
+Node *ReadUsers(Node *root) // Read Users in BST
+{
+    User s;
+    char name[100];
+    char pass[100];
     FILE *f = fopen("Users.txt", "r");
     if (f == NULL)
     {
-        printf("Error...Cannot Open Users File.\n");
-        exit(3);
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        return errno;
     }
     fseek(f, 0, SEEK_END);
     int size = ftell(f);
     rewind(f);
-    char temp[size + 1];
-    while (fgets(temp, size, f) != NULL)
+    char *tmp = (char *)malloc(sizeof(char) * (size + 1));
+    if (tmp == NULL)
     {
-        char *token = strtok(temp, ",");
-        s->username = malloc(strlen(token) + 1);
-        if (s->username == NULL)
-        {
-            printf("Error...Cannot Allocate Memory.\n");
-            exit(4);
-        }
-        strcpy(s->username, token);
-        token = strtok(NULL, ",");
-        s->password = malloc(strlen(token) + 1);
-        if (s->password == NULL)
-        {
-            printf("Error...Cannot Allocate Memory.\n");
-            exit(5);
-        }
-        strcpy(s->password, token);
-        NoOfUsers++;
-        root = insert(root, *s);
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        fclose(f);
+        return errno;
     }
+    while (fgets(tmp, size, f) != NULL)
+    {
+        char *token = strtok(tmp, ",");
+        strcpy(name, token);
+        token = strtok(NULL, "\n");
+        strcpy(pass, token);
+        s = newUser(name, pass);
+        root = insert(root, s);
+    }
+    free(tmp);
     fclose(f);
     return root;
 }
 
-void login(Node *root)
+int login(Node *root)
 {
-    int selection = 0;
-    User x;
+    User s;
+    char name[100];
+    char pass[100];
+    int selection;
     do
     {
-        printf("Enter Username: ");
-        gets(x.username);
-        printf("Enter Password: ");
-        gets(x.password);
-        Node *found = Search(root, x.username);
+        selection = 0;
+        Print_In_X(50, "Enter Username: ");
+        fgets(name, sizeof(name), stdin);
+        Print_In_X(50, "Enter Password: ");
+        fgets(pass, sizeof(pass), stdin);
+        name[strlen(name) - 1] = '\0';
+        pass[strlen(pass) - 1] = '\0';
+        s = newUser(name, pass);
+        Node *found = Search(root, s);
         if (found == NULL)
         {
-            printf("Incorrect Username or Password.\n");
+            Print_In_X(50, "Incorrect Username or Password.\n");
             do
             {
-                printf("Choose an option:\n");
-                printf("1-Try Again\n2-Exit\n");
+                Print_In_X(50, "Choose an option:\n");
+                Print_In_X(50, "1-Try Again\n");
+                Print_In_X(50, "2-Exit\n");
                 scanf("%d", &selection);
                 getchar();
                 if (selection != 1 && selection != 2)
-                    printf("Invalid Selection.\n");
+                    Print_In_X(50, "Invalid Selection\n");
             } while (selection != 1 && selection != 2);
+            if (selection == 2)
+            {
+                FreeUser(s);
+                exit(0);
+            }
         }
-    } while ();
+        else
+        {
+            if (strcmp(pass, found->s.password) != 0)
+            {
+                Print_In_X(50, "Incorrect Username or Password.\n");
+                do
+                {
+                    Print_In_X(50, "Choose an option:\n");
+                    Print_In_X(50, "1-Try Again\n");
+                    Print_In_X(50, "2-Exit\n");
+                    scanf("%d", &selection);
+                    getchar();
+                    if (selection != 1 && selection != 2)
+                        Print_In_X(50, "Invalid Selection\n");
+                } while (selection != 1 && selection != 2);
+                if (selection == 2)
+                {
+                    FreeUser(s);
+                    exit(0);
+                }
+            }
+            else
+            {
+                Print_In_X(50, "Logged In Successfully\n");
+                FreeUser(s);
+                return 1;
+            }
+        }
+    } while (selection == 1);
 }
 
 int main(void)
 {
-    int selection;
     Node *root = NULL;
     root = ReadUsers(root);
-    printf("=====================================================\n");
-    printf("\tWelcome To Bus Reservation System\n");
-    printf("=====================================================\n");
+    if (root == NULL)
+    {
+        Print_In_X(50, "An Error has occurred...\n");
+        Print_In_X(50, "Cannot Read Users File.\n");
+        return 1;
+    }
+    Print_In_X(50, "=====================================================\n");
+    Print_In_X(50, "\tWelcome To Bus Reservation System\n");
+    Print_In_X(50, "=====================================================\n");
+    int selection;
     do
     {
-        printf("Choose an Option:\n");
-        printf("1-Login\n2-Exit\n");
+        Print_In_X(50, "Choose an Option:\n");
+        Print_In_X(50, "1-Login\n");
+        Print_In_X(50, "2-Exit\n");
         scanf("%d", &selection);
         getchar();
         if (selection != 1 && selection != 2)
-            printf("Invalid Selection.\n");
+            Print_In_X(50, "Invalid Selection.\n");
     } while (selection != 1 && selection != 2);
     if (selection == 1)
     {
-        // Login();
+        int x = login(root);
     }
     else
         return 0;
