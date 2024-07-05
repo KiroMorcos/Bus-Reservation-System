@@ -1,1 +1,2 @@
-    FreeUser(s);
+int x = login(root);
+        
