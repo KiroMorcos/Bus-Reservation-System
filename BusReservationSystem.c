@@ -5,13 +5,16 @@
 #include <dirent.h>
 extern int errno;
 int No_Users = 0;
-
-/* DONE: SUCCESSfUL USERS LOADING IN BST
-   NEXT: CODE LOGIN FUNCTION
-   Make directory for files
-*/
-
-//Debug Login Function
+// Debug Login Function
+typedef struct bus
+{
+    int bus_number;
+    int total_seats;
+    int free_seats;
+    char source[50];
+    char destination[50];
+    float fare;
+} bus;
 
 typedef struct User
 {
@@ -100,7 +103,7 @@ Node *Search(Node *root, User s)
 
 void PreorderDisplay(Node *root)
 {
-    if(root)
+    if (root)
     {
         printf("%s\n", root->s.name);
         PreorderDisplay(root->left);
@@ -150,7 +153,7 @@ int login(Node *root)
     User s;
     char name[100];
     char pass[100];
-    int selection;
+    short selection;
     do
     {
         selection = 0;
@@ -173,7 +176,7 @@ int login(Node *root)
                 scanf("%d", &selection);
                 getchar();
                 if (selection != 1 && selection != 2)
-                    Print_In_X(50, "Invalid Selection\n");
+                    Print_In_X(50, "Invalid Selection\n\n");
             } while (selection != 1 && selection != 2);
             if (selection == 2)
             {
@@ -194,7 +197,7 @@ int login(Node *root)
                     scanf("%d", &selection);
                     getchar();
                     if (selection != 1 && selection != 2)
-                        Print_In_X(50, "Invalid Selection\n");
+                        Print_In_X(50, "Invalid Selection\n\n");
                 } while (selection != 1 && selection != 2);
                 if (selection == 2)
                 {
@@ -204,7 +207,7 @@ int login(Node *root)
             }
             else
             {
-                Print_In_X(50, "Logged In Successfully\n");
+                Print_In_X(50, "Logged In Successfully\n\n");
                 FreeUser(s);
                 return 1;
             }
@@ -215,6 +218,7 @@ int login(Node *root)
 int main(void)
 {
     Node *root = NULL;
+    // Building BST for users' credentials
     root = ReadUsers(root);
     if (root == NULL)
     {
@@ -225,7 +229,7 @@ int main(void)
     Print_In_X(50, "=====================================================\n");
     Print_In_X(50, "\tWelcome To Bus Reservation System\n");
     Print_In_X(50, "=====================================================\n");
-    int selection;
+    short selection;
     do
     {
         Print_In_X(50, "Choose an Option:\n");
@@ -234,11 +238,41 @@ int main(void)
         scanf("%d", &selection);
         getchar();
         if (selection != 1 && selection != 2)
-            Print_In_X(50, "Invalid Selection.\n");
+            Print_In_X(50, "Invalid Selection\n\n");
     } while (selection != 1 && selection != 2);
     if (selection == 1)
     {
+        selection = 0;
         int x = login(root);
+        if (x)
+        {
+            do
+            {
+                Print_In_X(50, "Choose an Option:\n");
+                Print_In_X(50, "1-Purchase A Ticket\n");
+                Print_In_X(50, "2-Cancel A Ticket\n");
+                Print_In_X(50, "3-Check Bus Status\n");
+                Print_In_X(50, "4-Exit\n");
+                scanf("%d", &selection);
+                getchar();
+                if (selection < 1 || selection > 4)
+                    Print_In_X(50, "Invalid Selection\n\n");
+            } while (selection < 1 || selection > 4);
+            switch (selection)
+            {
+                case 1:
+                    //Purchase_Ticket();
+                    break;
+                case 2:
+                    //Cancel_Ticket();
+                    break;
+                case 3:
+                    //Bus_Status();
+                    break;
+                case 4:
+                    exit(0);
+            }
+        }
     }
     else
         return 0;
