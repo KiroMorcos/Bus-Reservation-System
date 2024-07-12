@@ -1,0 +1,10 @@
+100,50,A_Bus_Station,4th street,3.0
+101,25,B_Bus_Station,13th street,1.5
+102,30,C_Bus_Station,21st street,2.0
+103,10,D_Bus_Station,main street,1.0
+104,15,E_Bus_Station,10th street,1.25
+105,20,F_Bus_Station,13th street,2.25
+106,25,G_Bus_Station,10th street,3.25
+107,50,H_Bus_Station,4th street,3.5
+108,50,I_Bus_Station,1st street,3.5
+109,15,J_Bus_Station,main street,1.5

@@ -3,9 +3,10 @@
 #include <string.h>
 #include <errno.h>
 #include <dirent.h>
+#define MaxBusNo 20
 extern int errno;
 int No_Users = 0;
-// Debug Login Function
+
 typedef struct bus
 {
     int bus_number;
@@ -43,7 +44,7 @@ Node *newNode(User x)
     {
         fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
         fprintf(stderr, "Error Message: %s\n", strerror(errno));
-        return errno;
+        exit(errno);
     }
     n->left = n->right = NULL;
     n->s = x;
@@ -121,7 +122,7 @@ Node *ReadUsers(Node *root) // Read Users in BST
     {
         fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
         fprintf(stderr, "Error Message: %s\n", strerror(errno));
-        return errno;
+        exit(errno);
     }
     fseek(f, 0, SEEK_END);
     int size = ftell(f);
@@ -132,7 +133,7 @@ Node *ReadUsers(Node *root) // Read Users in BST
         fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
         fprintf(stderr, "Error Message: %s\n", strerror(errno));
         fclose(f);
-        return errno;
+        exit(errno);
     }
     while (fgets(tmp, size, f) != NULL)
     {
@@ -148,6 +149,45 @@ Node *ReadUsers(Node *root) // Read Users in BST
     return root;
 }
 
+void ReadBuses(bus buses[])
+{
+    FILE *f = fopen("Bus.txt", "r");
+    if (f == NULL)
+    {
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        exit(errno);
+    }
+    fseek(f, 0, SEEK_END);
+    int size = ftell(f);
+    rewind(f);
+    char *tmp = (char *)malloc(sizeof(char) * (size + 1));
+    if (tmp == NULL)
+    {
+        fprintf(stderr, "An Error has occurred...\nError Number: %d\n", errno);
+        fprintf(stderr, "Error Message: %s\n", strerror(errno));
+        fclose(f);
+        exit(errno);
+    }
+    short i = 0;
+    while (fgets(tmp, size, f) != NULL)
+    {
+        char *token = strtok(tmp, ",");
+        buses[i].bus_number = atoi(token);
+        token = strtok(NULL, ",");
+        buses[i].total_seats = buses[i].free_seats = atoi(token);
+        token = strtok(NULL, ",");
+        strcpy(buses[i].source, token);
+        token = strtok(NULL, ",");
+        strcpy(buses[i].destination, token);
+        token = strtok(NULL, "\n");
+        buses[i].fare = atof(token);
+        i++;
+    }
+    free(tmp);
+    fclose(f);
+}
+
 int login(Node *root)
 {
     User s;
@@ -157,9 +197,9 @@ int login(Node *root)
     do
     {
         selection = 0;
-        Print_In_X(50, "Enter Username: ");
+        Print_In_X(55, "Enter Username: ");
         fgets(name, sizeof(name), stdin);
-        Print_In_X(50, "Enter Password: ");
+        Print_In_X(55, "Enter Password: ");
         fgets(pass, sizeof(pass), stdin);
         name[strlen(name) - 1] = '\0';
         pass[strlen(pass) - 1] = '\0';
@@ -167,16 +207,16 @@ int login(Node *root)
         Node *found = Search(root, s);
         if (found == NULL)
         {
-            Print_In_X(50, "Incorrect Username or Password.\n");
+            Print_In_X(55, "Incorrect Username or Password.\n");
             do
             {
-                Print_In_X(50, "Choose an option:\n");
-                Print_In_X(50, "1-Try Again\n");
-                Print_In_X(50, "2-Exit\n");
+                Print_In_X(55, "Choose an option:\n");
+                Print_In_X(55, "1-Try Again\n");
+                Print_In_X(55, "2-Exit\n");
                 scanf("%d", &selection);
                 getchar();
                 if (selection != 1 && selection != 2)
-                    Print_In_X(50, "Invalid Selection\n\n");
+                    Print_In_X(55, "Invalid Selection\n\n");
             } while (selection != 1 && selection != 2);
             if (selection == 2)
             {
@@ -188,16 +228,16 @@ int login(Node *root)
         {
             if (strcmp(pass, found->s.password) != 0)
             {
-                Print_In_X(50, "Incorrect Username or Password.\n");
+                Print_In_X(55, "Incorrect Username or Password.\n");
                 do
                 {
-                    Print_In_X(50, "Choose an option:\n");
-                    Print_In_X(50, "1-Try Again\n");
-                    Print_In_X(50, "2-Exit\n");
+                    Print_In_X(55, "Choose an option:\n");
+                    Print_In_X(55, "1-Try Again\n");
+                    Print_In_X(55, "2-Exit\n");
                     scanf("%d", &selection);
                     getchar();
                     if (selection != 1 && selection != 2)
-                        Print_In_X(50, "Invalid Selection\n\n");
+                        Print_In_X(55, "Invalid Selection\n\n");
                 } while (selection != 1 && selection != 2);
                 if (selection == 2)
                 {
@@ -207,7 +247,7 @@ int login(Node *root)
             }
             else
             {
-                Print_In_X(50, "Logged In Successfully\n\n");
+                Print_In_X(55, "Logged In Successfully\n\n");
                 FreeUser(s);
                 return 1;
             }
@@ -218,27 +258,28 @@ int login(Node *root)
 int main(void)
 {
     Node *root = NULL;
-    // Building BST for users' credentials
     root = ReadUsers(root);
     if (root == NULL)
     {
-        Print_In_X(50, "An Error has occurred...\n");
-        Print_In_X(50, "Cannot Read Users File.\n");
+        Print_In_X(55, "An Error has occurred...\n");
+        Print_In_X(55, "Cannot Read Users File.\n");
         return 1;
     }
-    Print_In_X(50, "=====================================================\n");
-    Print_In_X(50, "\tWelcome To Bus Reservation System\n");
-    Print_In_X(50, "=====================================================\n");
+    bus buses[MaxBusNo];
+    ReadBuses(buses);
+    Print_In_X(55, "=====================================================\n");
+    Print_In_X(60, "\tWelcome To Bus Reservation System\n");
+    Print_In_X(55, "=====================================================\n");
     short selection;
     do
     {
-        Print_In_X(50, "Choose an Option:\n");
-        Print_In_X(50, "1-Login\n");
-        Print_In_X(50, "2-Exit\n");
+        Print_In_X(55, "Choose an Option:\n");
+        Print_In_X(55, "1-Login\n");
+        Print_In_X(55, "2-Exit\n");
         scanf("%d", &selection);
         getchar();
         if (selection != 1 && selection != 2)
-            Print_In_X(50, "Invalid Selection\n\n");
+            Print_In_X(55, "Invalid Selection\n\n");
     } while (selection != 1 && selection != 2);
     if (selection == 1)
     {
@@ -248,29 +289,29 @@ int main(void)
         {
             do
             {
-                Print_In_X(50, "Choose an Option:\n");
-                Print_In_X(50, "1-Purchase A Ticket\n");
-                Print_In_X(50, "2-Cancel A Ticket\n");
-                Print_In_X(50, "3-Check Bus Status\n");
-                Print_In_X(50, "4-Exit\n");
+                Print_In_X(55, "Choose an Option:\n");
+                Print_In_X(55, "1-Purchase A Ticket\n");
+                Print_In_X(55, "2-Cancel A Ticket\n");
+                Print_In_X(55, "3-Check Bus Status\n");
+                Print_In_X(55, "4-Exit\n");
                 scanf("%d", &selection);
                 getchar();
                 if (selection < 1 || selection > 4)
-                    Print_In_X(50, "Invalid Selection\n\n");
+                    Print_In_X(55, "Invalid Selection\n\n");
             } while (selection < 1 || selection > 4);
             switch (selection)
             {
-                case 1:
-                    //Purchase_Ticket();
-                    break;
-                case 2:
-                    //Cancel_Ticket();
-                    break;
-                case 3:
-                    //Bus_Status();
-                    break;
-                case 4:
-                    exit(0);
+            case 1:
+                // Purchase_Ticket();
+                break;
+            case 2:
+                // Cancel_Ticket();
+                break;
+            case 3:
+                // Bus_Status();
+                break;
+            case 4:
+                exit(0);
             }
         }
     }
