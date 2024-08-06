@@ -5,7 +5,7 @@
 #include <dirent.h>
 #define MaxBusNo 20
 extern int errno;
-int No_Users = 0;
+short No_Users = 0;
 
 typedef struct bus
 {
